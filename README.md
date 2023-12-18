@@ -12,4 +12,4 @@
 
 ### Notes on `OpenGLBoardGUI/...`:
 
-The files `OpenGLBoardGUI/src/glad.c` and `OpenGLBoardGUI/stb_image.h` should be disregarded for the purpose of grading as they are downloaded and required library files for texture/image loading and OpenGL abstraction. All other files were uniquely created by *Isaac Huffman*.
+The files `OpenGLBoardGUI/src/glad.c` and `OpenGLBoardGUI/stb_image.h` should be disregarded for the purpose of grading as they are downloaded and required library files for texture/image loading and OpenGL abstraction. All other files within `OpenGLBoardGUI/` were uniquely created by *Isaac Huffman*.
