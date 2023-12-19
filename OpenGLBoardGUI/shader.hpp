@@ -10,39 +10,49 @@
 #include <iostream>
 #include <string>
 
+// Note:
+// This file includes a custom "Shader" class which is used for untility/abstraction purposes to reduce the 
+// amount of backend OpenGL code written directly into the main source file. The "backend" code happening is code
+// for taking shader (glsl) source code from a file and converting it to a character array pointer to
+// pass into a created OpenGL shader program. Said shader program can be refrenced with the Shader object.
+
 class Shader {
 public:
     unsigned int ID;
 
     Shader(const char *vertexShaderPath, const char *fragmentShaderPath) {
-       changeShader(vertexShaderPath, fragmentShaderPath); 
+       changeShader(vertexShaderPath, fragmentShaderPath); // Code not directly in constructor so shader source files can be changed later in execution
     }
 
     void changeShader(const char *vertexShaderPath, const char *fragmentShaderPath) {
+        // File Reading
+        // ------------
         std::string vertexCode;
         std::string fragmentCode;
         std::ifstream vShaderFile;
         std::ifstream fShaderFile;
-        vShaderFile.exceptions(std::ifstream::badbit | std::ifstream::failbit);
+        vShaderFile.exceptions(std::ifstream::badbit | std::ifstream::failbit); // Set input stream flags for error grabbing
         fShaderFile.exceptions(std::ifstream::badbit | std::ifstream::failbit);
         try {
-            vShaderFile.open(vertexShaderPath);
+            vShaderFile.open(vertexShaderPath); // Open file
             fShaderFile.open(fragmentShaderPath);
             std::stringstream vShaderStream, fShaderStream;
 
-            vShaderStream << vShaderFile.rdbuf();
+            vShaderStream << vShaderFile.rdbuf(); // Read file contents into input/buffer stream
             fShaderStream << fShaderFile.rdbuf();
-            vShaderFile.close();
+            vShaderFile.close(); // Clean up :)
             fShaderFile.close();
 
-            vertexCode = vShaderStream.str();
+            vertexCode = vShaderStream.str(); // Convert to c++ String
             fragmentCode = fShaderStream.str();
         } catch (std::ifstream::failure e) {
             std::cout << "ERROR::SHADER::FILE_NOT_READ: " << e.what() << std::endl;
         }
-        const char *vShaderCode = vertexCode.c_str();
+        const char *vShaderCode = vertexCode.c_str(); // Convert c++ string to needed *char[] (pointer to char array)
         const char *fShaderCode = fragmentCode.c_str();
 
+        // OpenGL Shader Loading/Creation and Compiling
+        // --------------------------------------------
         unsigned int vertex, fragment;
         vertex = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertex, 1, &vShaderCode, NULL);
@@ -64,11 +74,13 @@ public:
         glDeleteShader(fragment);
     }
 
+    // Activate Shader Program
     void use() {
         glUseProgram(ID);
     }
 
 private:
+    // Error Checking :)
     void checkCompile(unsigned int shader, bool isProgram) {
         int sucess;
         char infoLog[512];
