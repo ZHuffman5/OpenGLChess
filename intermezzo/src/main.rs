@@ -1,9 +1,12 @@
 mod chess;
 
+// Testing the move generation functions and Chess_Board struct provided by the chess module
 fn main()
 {
+    // Creates a Chess_Board object with default values
     let mut sample_board = chess::Chess_Board { ..Default::default() };
     sample_board.generate_distance();
+    // Configures the board with custom values
     sample_board.configure_board(
         [
             4,  0,  3,  5,  6,  3,  2,  4,
@@ -18,6 +21,12 @@ fn main()
     );
     sample_board.print_board();
 
+    // The following lines of code tests the move generation functions for various pieces
+    // and prints the results
+
+    // Bishops, rooks, queens, knights, and pawns at various locations on the configued board
+    // are all tested
+    
     let mut sample_results = sample_board.bishop_moves(sample_board.board[2], 2);
     println!("{:?}", sample_results);
 
@@ -41,7 +50,8 @@ fn main()
 
     sample_results = sample_board.pawn_moves(sample_board.board[53], 53);
     println!("{:?}", sample_results);
-    
+
+    // Tests the move_piece function which also adds a Move object to the array of moves within the Chess_Board object
     sample_board.move_piece(10, 26);
     sample_board.print_board();
     sample_results = sample_board.pawn_moves(sample_board.board[25], 25);
