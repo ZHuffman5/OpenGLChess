@@ -1,3 +1,7 @@
+// This a work in progress refactoring of the chess logic
+// Please check out the other Rust files for the current logic implementation progress
+// The main function currently does not do anything
+
 #![allow(nonstandard_style)]
 #![allow(dead_code)]
 #![allow(unused)]
