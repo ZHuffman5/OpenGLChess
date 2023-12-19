@@ -1,5 +1,6 @@
 #[path ="chess_core.rs"] pub mod chess_core;
 
+// An enum containing all piece types for squares
 #[derive(Clone, Copy)]
 pub enum Piece_Type
 {
@@ -12,6 +13,8 @@ pub enum Piece_Type
     Empty,
 }
 
+// The piece object
+// derive(Clone, Copy) automatically implements the clone and copy functions for this struct (a unique Rust implementation detail for objects)
 #[derive(Clone, Copy)]
 pub struct Piece
 {
@@ -20,13 +23,16 @@ pub struct Piece
     pub has_moved: bool,
 }
 
+// The methods for the Piece object
 impl Piece
 {
+    // The constructor
     pub fn new(piece_type: Piece_Type, color: chess_core::Player) -> Self
     {
         return Piece { piece_type, color, has_moved: false };
     }
-    
+
+    // Generating moves based on the piece type
     pub fn generate_moves()
     {
         todo!();
