@@ -3,6 +3,7 @@ use piece::chess_core::*;
 
 #[path="piece.rs"] pub mod piece;
 
+// A 2d array of pieces as the board as well as the turn for the current player
 pub struct Chess_Board
 {
     board: [[Piece; 8]; 8],
@@ -11,6 +12,7 @@ pub struct Chess_Board
 
 impl Chess_Board
 {
+    // Constructor that creates a initializes a new board with the starting position
     pub fn new(player: Player) -> Self
     {
         let mut new_board = Chess_Board { 
@@ -20,7 +22,8 @@ impl Chess_Board
         new_board.initial_setup();
         return new_board;
     }
-    
+
+    // Setting up the initial position
     fn initial_setup(&mut self)
     {
         self.board[0][0] = Piece::new(Piece_Type::Rook,   Player::Black);
@@ -48,6 +51,10 @@ impl Chess_Board
     }
 }
 
+// Implements the operator overload for indexing
+// Allows for the following
+// sample_board[(2, 1)]
+// The above would return the Piece at board[2][1] in Chess_Board
 impl std::ops::Index<(usize, usize)> for Chess_Board
 {
     type Output = Piece;
@@ -57,6 +64,7 @@ impl std::ops::Index<(usize, usize)> for Chess_Board
     }
 }
 
+// Implements operator overloading for indexing with the Square object implemented in chess_core.rs
 impl std::ops::Index<chess_core::Square> for Chess_Board
 {
     type Output = Piece;
