@@ -1,11 +1,15 @@
 // the Chess_Board implementation is largely inspired from Sebastian Lague's excellent Coding Adventure video on Chess
+// though there are large differences in implementation
 // https://www.youtube.com/watch?v=U4ogK0MIzqk
 // https://github.com/SebLague/Chess-Coding-Adventure
+
+// Configure Rust tooling settings for excluding certain warnings and errors
 
 #![allow(dead_code)]
 #![allow(unused)]
 #![allow(non_camel_case_types)]
 
+// The Move struct which stores data related to a move made on the board
 pub struct Move
 {
     piece:     i8,
@@ -14,6 +18,9 @@ pub struct Move
     capture:   i8,
 }
 
+// Board details that contains miscellaneous data that we would may want to use
+// rooks_have_moved and kings_have_moved are useful for determining whether castling
+// is a legal move
 pub struct Board_Details
 {
     // rook index order: [0, 7, 56, 63]
@@ -26,29 +33,62 @@ pub struct Board_Details
 
 pub struct Chess_Board
 {
+    // The entire chess board is represented as a single 1d array of 64 integers
+    // Colors are represented by the sign of a number (positive or negative)
+    // The actual value of the number represents what piece it is
     pub board:       [i8; 64],
+    
+    // edge_counts is a 2d array useful within move generation functions
+    // it is initialized within the generate_distance function
+    // The idea originates from the Sebastian Lague video referenced at the beginning of the file
     pub edge_counts: [[usize; 8]; 64],
+    
+    // A vector (resizable array) of Moves
     pub moves:       Vec<Move>,
     pub details:     Board_Details,
 }
 
+// The impl block is used in Rust to implement methods for an object (struct)
+// The following functions are all methods belonging to the Chess_Board struct
 impl Chess_Board
 {
+    // Get row based on an index within the board array
     fn get_row(index: usize) -> usize
     {
         return index / 8;
     }
 
+    // Get column based on an index within the board array
     fn get_col(index: usize) -> usize
     {
         return index % 8;
     }
-    
+
+    // Checks if two pieces have matching colors by checking if the two numbers have the same sign
     fn match_color(origin_piece: i8, target_piece: i8) -> bool
     {
         return origin_piece * target_piece > 0;
     }
 
+    // Prints the board into a visual form that can be easily read by a human (ONLY FOR DEBUG PURPOSES)
+    // Example of the result of the print_board function:
+    // + --- + --- + --- + --- + --- + --- + --- + --- +
+    // |  R  |  N  |  B  |  Q  |  K  |  B  |  N  |  R  |
+    // + --- + --- + --- + --- + --- + --- + --- + --- +
+    // |  P  |  P  |  P  |  P  |  P  |  P  |  P  |  P  |
+    // + --- + --- + --- + --- + --- + --- + --- + --- +
+    // |     |     |     |     |     |     |     |     |
+    // + --- + --- + --- + --- + --- + --- + --- + --- +
+    // |     |     |     |     |     |     |     |     |
+    // + --- + --- + --- + --- + --- + --- + --- + --- +
+    // |     |     |     |     |     |     |     |     |
+    // + --- + --- + --- + --- + --- + --- + --- + --- +
+    // |     |     |     |     |     |     |     |     |
+    // + --- + --- + --- + --- + --- + --- + --- + --- +
+    // |  p  |  p  |  p  |  p  |  p  |  p  |  p  |  p  |
+    // + --- + --- + --- + --- + --- + --- + --- + --- +
+    // |  r  |  n  |  b  |  q  |  k  |  b  |  n  |  r  |
+    // + --- + --- + --- + --- + --- + --- + --- + --- +
     pub fn print_board(&self)
     {
         print!("{}{}{}", "+ --- + --- + --- + --- + --- + --- + --- + --- +", "\n", "|  ");
@@ -86,7 +126,8 @@ impl Chess_Board
             }
         } // for (index, square)
     } // fn print_board
-    
+
+    // Moves the piece to the indicated index of the board and appends a Move to the vector of Moves
     pub fn move_piece(&mut self, origin: usize, target: usize)
     {
         let origin_piece = self.board[origin];
@@ -103,7 +144,15 @@ impl Chess_Board
             }
         );
     }
-    
+
+    // The generate_distance function only needs to be run once on initialization
+    // It calculates the number of squares to the edge of the board for every
+    // square on the board in all eight direction and stores it in the edge_counts
+    // array (a 2d array of 8x64, 8 directions for 64 squares)
+    //
+    // These distance values are incredibly useful for move generation functions because
+    // they provide a value that can be used in for loops and ensure that index values will
+    // not be out of bounds
     pub fn generate_distance(&mut self)
     {
         for col in 0..8
@@ -130,7 +179,8 @@ impl Chess_Board
             }
         }
     }
-    
+
+    // Generates all legal moves for pawns
     pub fn pawn_moves(&self, color: i8, square: usize) -> Vec<usize>
     {
         let start_row:     usize = if color < 0 {  6 } else { 1 };
@@ -141,16 +191,20 @@ impl Chess_Board
         let directions: [i8; 2] = if color < 0 { [ -9, -7 ] } else { [ 9, 7 ] };
         let edge_count_index    = if color < 0 { [  4,  5 ] } else { [ 6, 7 ] };
 
+        // The index offsets for en passant (values depends on the color)
         let ep_directions: [i8; 2] = if color < 0 { [ -9, -7 ] } else { [ 7,  9 ] };
         let ep_neighbors:  [i8; 2] = if color < 0 { [ -1,  1 ] } else { [ 1, -1 ] };
         let ep_edge_count_index    = [2, 3];
 
         let mut results: Vec<usize> = vec![];
 
+        // The index of the square in front of the pawn piece passed into the function
         let square_in_front = (square as i8 + offset) as usize;
-        
+
+        // Moving forward one square
         if self.board[square_in_front] == 0
         {
+            // Pawn promotions
             if (Self::get_row(square_in_front) == promotion_row)
             {
                 results.push(200 + square_in_front);
@@ -160,7 +214,8 @@ impl Chess_Board
             } else
             {
                 results.push(square_in_front);
-                
+
+                // Pawn pushing forward 2 squares
                 if    Self::get_row(square) == start_row
                    && self.board[(square_in_front as i8 + offset) as usize] == 0
                 {
@@ -168,7 +223,9 @@ impl Chess_Board
                 }
             }
         }
-        
+
+        // Generating moves for diagonal pawn captures
+        // NOTE: in rust for i_idx in 0..2 is the same as for (int i = 0; i < 2; i++)
         for i_idx in 0..2
         {
             if self.edge_counts[square][edge_count_index[i_idx]] > 0
@@ -191,7 +248,8 @@ impl Chess_Board
                 }
             }
         }
-        
+
+        // En Passant in chess
         if self.moves.len() >= 1
         {
             let last_move: &Move = &self.moves[self.moves.len() - 1];
@@ -216,7 +274,12 @@ impl Chess_Board
 
         return results;
     }
-    
+
+    // A special function that is almost exactly the same as pawn_moves except it only
+    // returns the capture squares a pawn can make
+    //
+    // This is only useful for determining what squares a pawn is attacking and for implementing
+    // check and checkmate
     pub fn pawn_captures(&self, color: i8, square: usize) -> Vec<usize>
     {
         let mut results: Vec<usize> = vec![];
@@ -291,6 +354,7 @@ impl Chess_Board
         return results;
     }
 
+    // Generating legal knight moves
     pub fn knight_moves(&self, color: i8, square: usize) -> Vec<usize>
     {
         let mut results: Vec<usize> = vec![];
@@ -329,6 +393,7 @@ impl Chess_Board
         return results;
     }
 
+    // Generating legal bishop moves
     pub fn bishop_moves(&self, color: i8, square: usize) -> Vec<usize>
     {
         let mut results: Vec<usize> = vec![];
@@ -341,12 +406,14 @@ impl Chess_Board
                 let destination = (square as i8 + directions[d_idx] * (s_idx as i8 + 1)) as usize;
                 let target_piece = self.board[destination];
 
+                // If the square is empty, add index to the legal moves, continue the loop
                 if target_piece == 0
                 {
                     results.push(destination);
                     continue;
                 }
 
+                // If the piece encountered is the same color as the bishop, don't add to moves and break from loop
                 if Self::match_color(color, target_piece)
                 {
                     break;
@@ -364,6 +431,8 @@ impl Chess_Board
         return results;
     }
 
+    // Generate rook moves
+    // Identical to the bishop_moves function but with different directions
     pub fn rook_moves(&self, color: i8, square: usize) -> Vec<usize>
     {
         let mut results: Vec<usize> = vec![];
@@ -399,6 +468,7 @@ impl Chess_Board
         return results;
     }
 
+    // Generating queen_moves can be done by combining the results for a rook and bishop on that square
     pub fn queen_moves(&self, color: i8, square: usize) -> Vec<usize>
     {
         let mut results: Vec<usize> = vec![];
@@ -411,12 +481,14 @@ impl Chess_Board
 
         return results;
     }
-    
+
+    // Set a custom position on the board
     pub fn configure_board(&mut self, board: [i8; 64])
     {
         self.board = board;
     }
-    
+
+    // Generate king moves
     pub fn king_moves(&self, color: i8, square: usize) -> Vec<usize>
     {
         let mut results: Vec<usize> = vec![];
@@ -441,7 +513,8 @@ impl Chess_Board
                 }
             }
         }
-        
+
+        // Castling
         'castle: for i_idx in 0..2
         {
             if    self.details.rooks_have_moved[rook_detail_index[i_idx]] == false
@@ -473,9 +546,11 @@ impl Chess_Board
 
                 if i_idx == 0
                 {
+                    // Short castle
                     results.push(101);
                 } else
                 {
+                    // Long castle
                     results.push(1001);
                 }
             }
@@ -484,6 +559,8 @@ impl Chess_Board
         return results;
     }
 
+    // A function that returns every square that the opponent pieces are attacking
+    // Very useful for when check will be implemented
     fn check_opponent_attacks(&mut self, color: i8) -> Vec<usize>
     {
         let mut results: Vec<usize> = vec![];
@@ -510,6 +587,7 @@ impl Chess_Board
     }
 } // impl Chess_Board
 
+// Setting up the default values for the Chess_Board struct
 impl Default for Chess_Board
 {
     fn default() -> Self
