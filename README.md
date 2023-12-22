@@ -4,7 +4,7 @@
 
 `OpenGLBoardGUI/...` is Isaac's portion of the overall project which includes the visuals and OpenGL portion of the Chess Program
 
-`intermezzo/...` and `zwischenzug/...` is Daniel's portion which includes a chess logic and validation backend
+`intermezzo/...` and `zwischenzug/...` is Daniel's portion which includes a chess logic and validation backend in rust and an older version in c++
 
 **Both *parts* work on their own and the intention is to combine them next semester or over break**
 
